@@ -1,0 +1,57 @@
+name: CyberIntel Discord Bot
+
+on:
+  schedule:
+    - cron: "0 1 * * *"    # 06:30 IST — morning CVE + threat intel
+    - cron: "0 4 * * *"    # 09:30 IST — daily news digest
+    - cron: "0 8 * * *"    # 13:30 IST — midday full sweep
+    - cron: "0 12 * * *"   # 17:30 IST — afternoon bug bounty + tools
+    - cron: "0 16 * * *"   # 21:30 IST — evening research + wrap-up
+  workflow_dispatch:         # manual run button in GitHub UI
+
+permissions:
+  contents: write
+
+jobs:
+  run-bot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Restore dedup cache
+        uses: actions/cache@v4
+        with:
+          path: sent_ids.json
+          key: sent-ids-${{ runner.os }}
+          restore-keys: sent-ids-
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run bot
+        env:
+          # Your 5 channels — add these in GitHub → Settings → Secrets → Actions
+          DISCORD_THREAT_INTEL:    ${{ secrets.DISCORD_THREAT_INTEL }}
+          DISCORD_CVE_UPDATES:     ${{ secrets.DISCORD_CVE_UPDATES }}
+          DISCORD_BUG_BOUNTY:      ${{ secrets.DISCORD_BUG_BOUNTY }}
+          DISCORD_DAILY_NEWS:      ${{ secrets.DISCORD_DAILY_NEWS }}
+          DISCORD_TOOLS_RESOURCES: ${{ secrets.DISCORD_TOOLS_RESOURCES }}
+          GITHUB_TOKEN:            ${{ secrets.GITHUB_TOKEN }}
+        run: python src/bot.py
+
+      - name: Backup cache artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sent-ids-backup
+          path: sent_ids.json
+          retention-days: 7
