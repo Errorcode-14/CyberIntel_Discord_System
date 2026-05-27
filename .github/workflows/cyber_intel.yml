@@ -9,6 +9,9 @@ on:
     - cron: "0 16 * * *"   # 21:30 IST — evening research + wrap-up
   workflow_dispatch:         # manual run button in GitHub UI
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true   # opt into Node.js 24 now
+
 permissions:
   contents: write
 
@@ -39,7 +42,6 @@ jobs:
 
       - name: Run bot
         env:
-          # Your 5 channels — add these in GitHub → Settings → Secrets → Actions
           DISCORD_THREAT_INTEL:    ${{ secrets.DISCORD_THREAT_INTEL }}
           DISCORD_CVE_UPDATES:     ${{ secrets.DISCORD_CVE_UPDATES }}
           DISCORD_BUG_BOUNTY:      ${{ secrets.DISCORD_BUG_BOUNTY }}
