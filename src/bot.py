@@ -214,7 +214,6 @@ DAILY_NEWS_FEEDS = [
     ("https://www.securityweek.com/feed/",              "SecurityWeek"),
     ("https://threatpost.com/feed/",                    "Threatpost"),
     ("https://www.cisecurity.org/feed/advisories",      "CIS Advisories"),
-    ("https://cybersecuritynews.com/feed/",             "Cyber Security News"),
 ]
 
 # ════════════════════════════════════════════════════════════════════════════
@@ -306,10 +305,35 @@ def scrape(url: str, article_sel: str, title_sel: str,
             href  = l_el.get("href", "") if l_el else ""
             if href and not href.startswith("http"):
                 href = base_url.rstrip("/") + "/" + href.lstrip("/")
+            for el in article.select(title_sel):
+                el.decompose()
+ 
+            summary = ""
+            # 1. Look for explicit summary/excerpt elements first
+            for sel in ("p", ".excerpt", ".summary", ".card-text",
+                        ".entry-summary", ".post-excerpt", ".td-excerpt"):
+                s_el = article.select_one(sel)
+                if s_el:
+                    summary = s_el.get_text(strip=True)
+                    if len(summary) > 30:   # ignore tiny/empty paragraphs
+                        break
+ 
+            # 2. Fall back to all remaining text in the card
+            if not summary:
+                summary = article.get_text(separator=" ", strip=True)
+ 
+            # 3. Clean up and trim
+            summary = " ".join(summary.split())          # collapse whitespace
+            summary = summary[:300] + ("..." if len(summary) > 300 else "")
+ 
+            # 4. Last resort fallback
+            if not summary or len(summary) < 10:
+                summary = f"New post from **{label}**. Click to read the full article."
+ 
             items.append({
                 "id":      make_id(href or title),
                 "title":   f"[{label}] {title}",
-                "desc":    f"New post from **{label}**. Click to read the full article.",
+                "desc":    summary,
                 "url":     href,
                 "webhook": webhook_key,
                 "color":   color,
@@ -320,7 +344,6 @@ def scrape(url: str, article_sel: str, title_sel: str,
     except Exception as e:
         log.error("Scrape failed %s: %s", label, e)
         return []
-
 # ════════════════════════════════════════════════════════════════════════════
 #  #daily-news — Scraped daily news blogs (no RSS)
 # ════════════════════════════════════════════════════════════════════════════
