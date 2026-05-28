@@ -230,6 +230,8 @@ BUG_BOUNTY_FEEDS = [
     ("https://hackerone.com/hacktivity.rss",            "HackerOne Hacktivity"),
     ("https://portswigger.net/blog/rss",                "PortSwigger Research"),
     ("https://bugs.chromium.org/feeds/chromium/issues.atom", "Chromium Bugs"),
+    ("https://www.intigriti.com/blog/feed",              "intigriti"),
+    ("https://medium.com/feed/bugbountywriteup/tagged/bug-bounty",     "Medium"),
 ]
 
 def fetch_rss(feeds: list, webhook_key: str, color: str, hours: int = 24) -> list:
@@ -312,6 +314,37 @@ def scrape(url: str, article_sel: str, title_sel: str,
     except Exception as e:
         log.error("Scrape failed %s: %s", label, e)
         return []
+
+# ════════════════════════════════════════════════════════════════════════════
+#  #daily-news — Scraped daily news blogs (no RSS)
+# ════════════════════════════════════════════════════════════════════════════
+def fetch_daily_news_scraped() -> list:
+    items = []
+    current_year = datetime.now().year
+items += scrape(
+        url         = "https://www.helpnetsecurity.com/{current_year}/",
+        article_sel = "div.col",
+        title_sel   = "h5.reset-heading, h5.card-title",
+        link_sel    = "h5 a",
+        base_url    = "https://www.helpnetsecurity.com",
+        label       = "Help Net Security",
+        webhook_key = "daily_news",
+        color       = "news",
+    )
+
+items += scrape(
+    url         = "https://cybersecuritynews.com/",   
+    article_sel = "div.td-module-container",          
+    title_sel   = "h3.entry-title, h3.td-module-title",  
+    link_sel    = "h3 a",                             
+    base_url    = "https://cybersecuritynews.com",    
+    label       = "Cyber Security News",
+    webhook_key = "daily_news",
+    color       = "news",
+)
+    return items
+
+# https://www.helpnetsecurity.com/2026/
 
 
 # ════════════════════════════════════════════════════════════════════════════
@@ -515,6 +548,7 @@ def run():
 
     # #daily-news
     all_items += fetch_rss(DAILY_NEWS_FEEDS, "daily_news", "news", hours=24)
+    all_items += fetch_daily_news_scraped()
 
     # #tools-resources
     all_items += fetch_github_tools(hours=48)
