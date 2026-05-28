@@ -230,8 +230,8 @@ BUG_BOUNTY_FEEDS = [
     ("https://hackerone.com/hacktivity.rss",            "HackerOne Hacktivity"),
     ("https://portswigger.net/blog/rss",                "PortSwigger Research"),
     ("https://bugs.chromium.org/feeds/chromium/issues.atom", "Chromium Bugs"),
-    ("https://www.intigriti.com/blog/feed",              "intigriti"),
-    ("https://medium.com/feed/bugbountywriteup/tagged/bug-bounty",     "Medium"),
+    ("https://blog.intigriti.com/feed/", "Intigriti"),
+    ("https://medium.com/feed/bugbountywriteup", "Medium BugBountyWriteup"),
 ]
 
 def fetch_rss(feeds: list, webhook_key: str, color: str, hours: int = 24) -> list:
@@ -322,7 +322,7 @@ def fetch_daily_news_scraped() -> list:
     current_year = datetime.now().year
     items = []
     items += scrape(
-        url         = "https://www.helpnetsecurity.com/{current_year}/",
+        url = f"https://www.helpnetsecurity.com/{current_year}/",
         article_sel = "div.col",
         title_sel   = "h5.reset-heading, h5.card-title",
         link_sel    = "h5 a",
@@ -343,9 +343,6 @@ def fetch_daily_news_scraped() -> list:
         color       = "news",
     )
     return items
-
-# https://www.helpnetsecurity.com/2026/
-
 
 # ════════════════════════════════════════════════════════════════════════════
 #  @threat-intel — Scraped threat intel blogs (no RSS)
