@@ -1,6 +1,6 @@
 # CyberIntel Discord Bot 🛡️
 
-A free, fully automated cybersecurity intelligence bot that watches the internet for you and drops everything worth knowing straight into your Discord server — CVEs, breaches, exploits, threat research, new tools, and more.
+A free, fully automated cybersecurity intelligence bot that watches the internet for you and drops everything worth knowing straight into your Discord server - CVEs, breaches, exploits, threat research, new tools, and more.
 
 
 ---
