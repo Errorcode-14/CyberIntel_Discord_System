@@ -199,44 +199,143 @@ def fetch_nvd_cves(min_cvss: float = 7.0, hours: int = 24) -> list:
  
 # ════════════════════════════════════════════════════════════════════════════
 #  #cve-updates — CVE FALLBACK SOURCES (when NVD is down)
-#  These kick in automatically if NVD returns nothing
+#
+#  Source 1: CVEProject/cvelistV5 — the OFFICIAL CVE list on GitHub
+#    Published by MITRE/CVE Program. Contains every CVE as JSON.
+#    Releases a delta zip every few hours with new/updated CVEs.
+#    Uses GITHUB_TOKEN (auto-available in Actions) — no extra setup.
+#
+#  Source 2: RSS feeds that mirror CVE data
 # ════════════════════════════════════════════════════════════════════════════
-def fetch_cve_mitre_rss() -> list:
-    """MITRE CVE RSS feed — reliable alternative to NVD API."""
-    log.info("CVE Fallback: fetching MITRE CVE RSS...")
+def fetch_cveproject_github() -> list:
+    """
+    Fetch new CVEs from the official CVEProject/cvelistV5 GitHub repo.
+    MITRE publishes delta zip releases every few hours.
+    Uses GITHUB_TOKEN — works in GitHub Actions automatically.
+    """
+    log.info("CVE Fallback: fetching from CVEProject GitHub (official CVE list)...")
+    token = os.getenv("GITHUB_TOKEN", "")
+    headers = {
+        "Accept":               "application/vnd.github+json",
+        "X-GitHub-Api-Version": "2022-11-28",
+        "User-Agent":           "cyber-intel-bot",
+    }
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+ 
     try:
-        feed  = feedparser.parse("https://cve.mitre.org/data/downloads/allitems-cvrf-year-2026.xml")
-        # MITRE XML is large — use their news feed instead
-        feed  = feedparser.parse("https://www.cve.org/Media/News/item-feed.rss")
-        items = []
-        for entry in feed.entries[:10]:
-            title   = entry.get("title", "")
-            link    = entry.get("link", "")
-            summary = entry.get("summary", "")
-            if summary:
-                summary = BeautifulSoup(summary, "html.parser").get_text()[:300]
-            items.append({
-                "id":      make_id(link or title),
-                "title":   f"🟠 [CVE.ORG] {title}",
-                "desc":    summary or "New CVE published. Click for details.",
-                "url":     link,
-                "webhook": "cve_updates",
-                "color":   "high",
-                "mention": None,
-            })
-        log.info("MITRE CVE RSS: %d items", len(items))
+        # Step 1 — get the latest release
+        r = requests.get(
+            "https://api.github.com/repos/CVEProject/cvelistV5/releases/latest",
+            headers=headers, timeout=15
+        )
+        r.raise_for_status()
+        release = r.json()
+        tag     = release.get("tag_name", "")
+        assets  = release.get("assets", [])
+        log.info("CVEProject latest release: %s | assets: %s", tag, [a["name"] for a in assets])
+ 
+        if not assets:
+            log.warning("CVEProject release has no assets")
+            return []
+ 
+        # Step 2 — prefer delta file, fall back to full recent zip
+        delta_asset = next(
+            (a for a in assets if "delta" in a["name"].lower() or "1-day" in a["name"].lower()),
+            assets[0]   # fall back to first asset
+        )
+        download_url = delta_asset["browser_download_url"]
+        log.info("Downloading: %s (%d bytes)", delta_asset["name"], delta_asset.get("size", 0))
+ 
+        # Step 3 — download and parse the zip
+        import io
+        r2 = requests.get(download_url, headers=headers, timeout=60)
+        r2.raise_for_status()
+ 
+        items     = []
+        cutoff    = datetime.now(timezone.utc) - timedelta(hours=48)
+ 
+        with zipfile.ZipFile(io.BytesIO(r2.content)) as zf:
+            json_files = [f for f in zf.namelist() if f.endswith(".json")]
+            log.info("CVEProject zip: %d JSON files", len(json_files))
+ 
+            for fname in json_files[:100]:   # cap to avoid very long runs
+                try:
+                    with zf.open(fname) as jf:
+                        cve_data = json.load(jf)
+ 
+                    # CVE list v5 schema
+                    cve_meta  = cve_data.get("cveMetadata", {})
+                    cve_id    = cve_meta.get("cveId", "")
+                    state     = cve_meta.get("state", "")
+                    published = cve_meta.get("datePublished", "")
+ 
+                    if state != "PUBLISHED" or not cve_id:
+                        continue
+ 
+                    # Parse published date
+                    if published:
+                        try:
+                            pub_dt = datetime.fromisoformat(published.replace("Z", "+00:00"))
+                            if pub_dt < cutoff:
+                                continue
+                        except ValueError:
+                            pass
+ 
+                    # Extract description
+                    containers = cve_data.get("containers", {})
+                    cna        = containers.get("cna", {})
+                    descriptions = cna.get("descriptions", [])
+                    desc = next(
+                        (d["value"] for d in descriptions if d.get("lang", "").startswith("en")),
+                        "No description available."
+                    )
+ 
+                    # Extract CVSS score if present
+                    metrics = cna.get("metrics", [])
+                    score   = 0.0
+                    for m in metrics:
+                        for cvss_key in ("cvssV3_1", "cvssV3_0", "cvssV2_0"):
+                            if cvss_key in m:
+                                score = m[cvss_key].get("baseScore", 0.0)
+                                break
+ 
+                    # Only post if CVSS >= 7.0 (or no score — include unscored new CVEs)
+                    if score > 0 and score < 7.0:
+                        continue
+ 
+                    is_critical = score >= 9.0
+                    score_str   = f"CVSS {score}" if score > 0 else "Score pending"
+                    items.append({
+                        "id":      cve_id,
+                        "title":   f"{'🔴 CRITICAL' if is_critical else '🟠'} | {cve_id} — {score_str}",
+                        "desc":    (
+                            f"{desc[:350]}{'...' if len(desc) > 350 else ''}\n\n"
+                            f"**Score:** {score_str}  |  "
+                            f"**Source:** CVEProject (official)"
+                        ),
+                        "url":     f"https://www.cve.org/CVERecord?id={cve_id}",
+                        "webhook": "cve_updates",
+                        "color":   "critical" if is_critical else "high",
+                        "mention": "@everyone 🚨 Critical CVE — patch immediately!" if is_critical else None,
+                    })
+                except Exception:
+                    continue
+ 
+        log.info("CVEProject GitHub: %d new CVEs", len(items))
         return items
+ 
     except Exception as e:
-        log.error("MITRE CVE RSS failed: %s", e)
+        log.error("CVEProject GitHub failed: %s", e)
         return []
  
-def fetch_vulndb_rss() -> list:
-    """VulnDB / Vulnerability Lab RSS — another NVD fallback."""
-    log.info("CVE Fallback: fetching Vulnerability Lab RSS...")
+ 
+def fetch_cve_rss_fallback() -> list:
+    """RSS-based CVE fallback — security mailing lists with CVE disclosures."""
+    log.info("CVE Fallback: RSS sources...")
     sources = [
-        ("https://www.vulnerability-lab.com/rss/rss.php",    "Vulnerability Lab"),
-        ("https://seclists.org/rss/fulldisclosure.rss",       "Full Disclosure"),
-        ("https://packetstormsecurity.com/feeds/vulnerabilities/","Packet Storm CVEs"),
+        ("https://seclists.org/rss/fulldisclosure.rss",           "Full Disclosure"),
+        ("https://packetstormsecurity.com/feeds/vulnerabilities/", "Packet Storm"),
     ]
     items = []
     for feed_url, label in sources:
@@ -251,7 +350,7 @@ def fetch_vulndb_rss() -> list:
                 items.append({
                     "id":      make_id(link or title),
                     "title":   f"🟠 [{label}] {title}",
-                    "desc":    summary or "Click to read full details.",
+                    "desc":    summary or "Click to read full vulnerability details.",
                     "url":     link,
                     "webhook": "cve_updates",
                     "color":   "high",
@@ -259,7 +358,7 @@ def fetch_vulndb_rss() -> list:
                 })
             log.info("  %s: %d items", label, len(items))
         except Exception as e:
-            log.error("Fallback RSS %s failed: %s", label, e)
+            log.error("CVE RSS fallback %s failed: %s", label, e)
     return items
  
 # ════════════════════════════════════════════════════════════════════════════
@@ -652,22 +751,22 @@ def run():
     log.info("CyberIntel Bot — %s UTC", datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M"))
     log.info("Channels: @threat-intel | #cve-updates | #bug-bounty | #daily-news | #tools-resources")
     log.info("=" * 60)
-
+ 
     cache = load_cache()
     sent  = 0
     skipped = 0
-
+ 
     all_items = []
-
-# #cve-updates — NVD primary, fallbacks if NVD is down
+ 
+    # #cve-updates — NVD primary, fallbacks if NVD is down
     nvd_items = fetch_nvd_cves(min_cvss=7.0, hours=24)
     if nvd_items:
         all_items += nvd_items
         log.info("CVE source: NVD API (%d items)", len(nvd_items))
     else:
-        log.warning("NVD returned nothing — switching to fallback CVE sources")
-        all_items += fetch_cve_mitre_rss()
-        all_items += fetch_vulndb_rss()
+        log.warning("NVD returned nothing — switching to CVEProject GitHub (official CVE list)")
+        all_items += fetch_cveproject_github()
+        all_items += fetch_cve_rss_fallback()
     all_items += fetch_cisa_kev(hours=24)
  
     # @threat-intel
