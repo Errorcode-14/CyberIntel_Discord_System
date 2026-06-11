@@ -1,7 +1,6 @@
-# CyberIntel Discord Bot 🛡️
+# CyberIntel Discord System 🛡️
 
-A free, fully automated cybersecurity intelligence bot that watches the internet for you and drops everything worth knowing straight into your Discord server - CVEs, breaches, exploits, threat research, new tools, and more.
-
+CyberIntel Discord System is a scheduled cybersecurity intelligence system that aggregates threat data from RSS feeds, APIs, and web scraping, and distributes structured security updates into five categorized Discord channels.
 
 ---
 
