@@ -184,19 +184,21 @@ Go to your repo → **Settings → Secrets and variables → Actions → New rep
 
 Go to **Actions tab → CyberIntel Discord System → Run workflow**
 
-First run takes about 3 minutes. Check your Discord - everything should start flowing in.
+First run takes about 5 minutes. Check your Discord - everything should start flowing in.
 
 ---
 
-## Run schedule (IST)
+## Run Schedule (IST)
 
-| Time | What runs |
-|---|---|
-| 6:30 AM | CVE check + threat intel |
-| 9:30 AM | Daily news digest |
-| 1:30 PM | Full sweep — all channels |
-| 5:30 PM | Bug bounty + tools |
-| 9:30 PM | Research papers + wrap-up |
+> ⚠️ GitHub Actions free tier does not guarantee exact run times. Actual runs may be delayed by 1–4 hours depending on GitHub's server load. This is normal and outside our control.
+
+|Scheduled (IST)|Targets|Cron (UTC)|
+|---|---|---|
+|~6:30 AM|CVE check + threat intel|`0 23 * * *` (prev. day)|
+|~9:30 AM|Daily news digest|`0 2 * * *`|
+|~1:30 PM|Full sweep — all channels|`0 6 * * *`|
+|~5:30 PM|Bug bounty + tools|`0 10 * * *`|
+|~9:30 PM|Research papers + wrap-up|`0 14 * * *`|
 
 ---
 
