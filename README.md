@@ -86,7 +86,7 @@ Every CVE published in the last 24 hours with a CVSS score of 3.0 or above, sort
 - NVD / NIST CVE API v2.0 (with free API key for reliability)
 
 **Automatic fallback when NVD is down:**
-- CVEProject/cvelistV5 — official MITRE CVE list on GitHub (delta zip, updated every few hours)
+- CVEProject/cvelistV5 - official MITRE CVE list on GitHub (delta zip, updated every few hours)
 - Packet Storm vulnerabilities feed
 
 **Always running alongside:**
@@ -144,8 +144,8 @@ Newly created security repositories on GitHub + latest academic security researc
 ### 1. Fork or clone this repo
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/cyber-intel-bot.git
-cd cyber-intel-bot
+git clone https://github.com/Errorcode-14/CyberIntel_Discord_System.git
+cd CyberIntel_Discord_System
 ```
 
 ### 2. Get a free NVD API key (highly recommended)
@@ -162,7 +162,7 @@ The bot has a fallback (CVEProject GitHub) but the key keeps NVD reliable.
 For each of your 5 channels:
 1. Right-click the channel → **Edit Channel**
 2. Go to **Integrations → Webhooks → New Webhook**
-3. Name it `CyberIntel Bot`
+3. Name it `CyberIntel name*`
 4. Click **Copy Webhook URL**
 
 ### 4. Add secrets to GitHub
@@ -184,7 +184,7 @@ Go to your repo → **Settings → Secrets and variables → Actions → New rep
 
 Go to **Actions tab → CyberIntel Discord System → Run workflow**
 
-First run takes about 3 minutes. Check your Discord — everything should start flowing in.
+First run takes about 3 minutes. Check your Discord - everything should start flowing in.
 
 ---
 
@@ -264,7 +264,7 @@ link_sel    = "a"
 url = f"https://www.helpnetsecurity.com/{datetime.now().year}/"
 ```
 
-> If scraping returns 0 items, the site is likely JavaScript-rendered (Cloudflare). Check if they have an RSS feed instead — most do.
+> If scraping returns 0 items, the site is likely JavaScript-rendered (Cloudflare). Check if they have an RSS feed instead - most do.
 
 ---
 
@@ -289,7 +289,7 @@ if not any(k in item["title"].lower() for k in KEYWORDS):
 ```
 
 **Change the schedule:**
-Edit cron lines in `.github/workflows/cyber_intel.yml`. Use [crontab.guru](https://crontab.guru) to build a custom schedule. Times are UTC — subtract 5:30 for IST.
+Edit cron lines in `.github/workflows/cyber_intel.yml`. Use [crontab.guru](https://crontab.guru) to build a custom schedule. Times are UTC - subtract 5:30 for IST.
 
 ---
 
@@ -317,7 +317,7 @@ Check logs: **Actions tab → click the latest run → click `run-bot`**
 
 ## Cost
 
-**$0.** GitHub Actions free tier gives 2,000 minutes/month. This bot uses roughly 300 minutes/month (5 runs/day × ~2 min each).
+**$0.** GitHub Actions free tier gives 2,000 minutes/month. This bot uses roughly 900 minutes/month (5 runs/day × ~6 min each).
 
 ---
 
