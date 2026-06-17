@@ -1,6 +1,6 @@
 # CyberIntel Discord System 🛡️
 
-A scheduled cybersecurity intelligence pipeline that aggregates threat data from RSS feeds, APIs, and web scraping — then distributes structured alerts into five categorized Discord channels.
+A scheduled cybersecurity intelligence pipeline that aggregates threat data from RSS feeds, APIs, and web scraping, then distributes structured alerts into five categorized Discord channels.
 
 No server needed. No paid subscriptions. Just push to GitHub and it runs itself.
 
