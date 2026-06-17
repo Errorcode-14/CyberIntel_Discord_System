@@ -10,7 +10,12 @@ No server needed. No paid subscriptions. Just push to GitHub and it runs itself.
 
 > Video coming soon — will showcase live intelligence posts flowing into each Discord channel.
 
-[Watch Demo Video](src/Demo.mp4)
+
+
+https://github.com/user-attachments/assets/a116ba80-be46-4c0b-833f-48b29d80aadd
+
+
+
 
 ---
 
