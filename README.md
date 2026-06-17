@@ -10,11 +10,8 @@ No server needed. No paid subscriptions. Just push to GitHub and it runs itself.
 
 > Video coming soon — will showcase live intelligence posts flowing into each Discord channel.
 
-<!-- Once you have a recording:
-     - Drag the video/GIF into any GitHub Issue to upload it
-     - Copy the generated URL and replace this comment with:
-       ![Demo](YOUR_URL_HERE)
-     - Or link YouTube: [Watch Demo](https://youtube.com/your-link) -->
+
+       ![Demo](src/Demo.mp4)
 
 ---
 
