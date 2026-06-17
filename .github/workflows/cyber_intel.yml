@@ -2,11 +2,11 @@ name: CyberIntel Discord Bot
 
 on:
   schedule:
-    - cron: "0 1 * * *"    # 06:30 IST — morning CVE + threat intel
-    - cron: "0 4 * * *"    # 09:30 IST — daily news digest
-    - cron: "0 8 * * *"    # 13:30 IST — midday full sweep
-    - cron: "0 12 * * *"   # 17:30 IST — afternoon bug bounty + tools
-    - cron: "0 16 * * *"   # 21:30 IST — evening research + wrap-up
+    - cron: "0 23 * * *"   # ~06:30 IST — morning CVE + threat intel
+    - cron: "0 2 * * *"    # ~09:30 IST — daily news digest
+    - cron: "0 6 * * *"    # ~13:30 IST — midday full sweep
+    - cron: "0 10 * * *"   # ~17:30 IST — afternoon bug bounty + tools
+    - cron: "0 14 * * *"   # ~21:30 IST — evening research + wrap-up
   workflow_dispatch:         # manual run button in GitHub UI
 
 env:
