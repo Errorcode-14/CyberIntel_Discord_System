@@ -192,13 +192,13 @@ First run takes about 5 minutes. Check your Discord - everything should start fl
 
 > ⚠️ GitHub Actions free tier does not guarantee exact run times. Actual runs may be delayed by 1–4 hours depending on GitHub's server load. This is normal and outside our control.
 
-|Scheduled (IST)|Targets|Cron (UTC)|
-|---|---|---|
-|~6:30 AM|CVE check + threat intel|`0 23 * * *` (prev. day)|
-|~9:30 AM|Daily news digest|`0 2 * * *`|
-|~1:30 PM|Full sweep — all channels|`0 6 * * *`|
-|~5:30 PM|Bug bounty + tools|`0 10 * * *`|
-|~9:30 PM|Research papers + wrap-up|`0 14 * * *`|
+| Scheduled (IST) | Targets                   | Cron (UTC)              |
+| --------------- | ------------------------- | ----------------------- |
+| ~6:30 AM        | CVE check + threat intel  | `0 1 * * *` (prev. day) |
+| ~9:30 AM        | Daily news digest         | `0 4 * * *`             |
+| ~1:30 PM        | Full sweep — all channels | `0 8 * * *`             |
+| ~5:30 PM        | Bug bounty + tools        | `0 12 * * *`            |
+| ~9:30 PM        | Research papers + wrap-up | `0 16 * * *`            |
 
 ---
 
