@@ -11,7 +11,7 @@ No server needed. No paid subscriptions. Just push to GitHub and it runs itself.
 > Video coming soon — will showcase live intelligence posts flowing into each Discord channel.
 
 
-       [Demo](https://github.com/Errorcode-14/CyberIntel_Discord_System/blob/main/src/Demo.mp4)
+[Demo](https://github.com/Errorcode-14/CyberIntel_Discord_System/blob/main/src/Demo.mp4)
 
 ---
 
