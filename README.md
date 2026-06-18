@@ -8,7 +8,7 @@ No server needed. No paid subscriptions. Just push to GitHub and it runs itself.
 
 ## 🎬 Demo
 
-> Video coming soon — will showcase live intelligence posts flowing into each Discord channel.
+> Intelligence posts flowing into each Discord channel.
 
 
 
